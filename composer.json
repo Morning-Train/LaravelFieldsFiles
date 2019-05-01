@@ -1,0 +1,37 @@
+{
+    "name": "morningtrain/laravel-fields-files",
+    "description": "Files field for Laravel using Filepond",
+    "type": "library",
+    "license": "GPL-3.0-only",
+    "version": "dev",
+    "authors": [
+        {
+            "name": "Morningtrain",
+            "email": "mail@morningtrain.dk",
+            "homepage": "https://morningtrain.dk/"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "MorningTrain\\Laravel\\Fields\\Files\\": "src/"
+        }
+    },
+    "require": {
+        "php": ">=7.1",
+        "illuminate/http": "^5.8",
+        "illuminate/support": "^5.8",
+        "illuminate/console": "^5.8",
+        "illuminate/database": "^5.8",
+        "morningtrain/laravel-fields": "*",
+        "morningtrain/laravel-resources": "*"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "MorningTrain\\Laravel\\Fields\\Files\\ServiceProvider"
+            ],
+            "aliases": {
+            }
+        }
+    }
+}
