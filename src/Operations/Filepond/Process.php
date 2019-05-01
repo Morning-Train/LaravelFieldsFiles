@@ -2,11 +2,12 @@
 
 namespace MorningTrain\Laravel\Fields\Files\Operations\Filepond;
 
+use Illuminate\Http\UploadedFile;
 use MorningTrain\Laravel\Fields\Files\Support\Filepond;
 use MorningTrain\Laravel\Resources\Support\Contracts\Operation;
 use Illuminate\Support\Facades\Response;
 
-class Upload extends Operation
+class Process extends Operation
 {
 
     const ROUTE_METHOD = 'post';
@@ -15,11 +16,12 @@ class Upload extends Operation
     {
         $filepond = new Filepond();
 
-        $file = request()->file('file')[0];
-        $filePath = tempnam(config('filepond.temporary_files_path'), "laravel-filepond");
+        $file = request()->file('filepond');
+        $filePath = tempnam($filepond->getBasePath(), "laravel-filepond");
+
         $filePathParts = pathinfo($filePath);
 
-        if (!$file->move($filePathParts['dirname'], $filePathParts['basename'])) {
+        if (!($file instanceof UploadedFile) || !$file->move($filePathParts['dirname'], $filePathParts['basename'])) {
             return Response::make('Could not save file', 500);
         }
 

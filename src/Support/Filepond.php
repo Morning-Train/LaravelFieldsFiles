@@ -34,10 +34,12 @@ class Filepond
 
         $filePath = Crypt::decryptString($serverId);
 
-        if (!Str::startsWith($filePath, config('filepond.temporary_files_path'))) {
-            throw new InvalidPathException();
-        }
-
         return $filePath;
     }
+
+    public function getBasePath()
+    {
+        return config('filepond.temporary_files_path', sys_get_temp_dir());
+    }
+
 }
