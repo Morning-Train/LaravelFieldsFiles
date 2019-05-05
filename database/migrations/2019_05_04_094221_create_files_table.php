@@ -18,8 +18,11 @@ class CreateFilesTable extends Migration
             $table->timestamps();
 
             $table->string('name')->nullable();
+            $table->string('extension')->nullable();
             $table->string('description')->nullable();
             $table->string('uuid')->nullable();
+            $table->string('location')->nullable();
+            $table->string('disk')->nullable();
 
             $table->string('type')->nullable();
             $table->string('mime')->nullable();

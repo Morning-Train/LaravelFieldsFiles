@@ -17,15 +17,25 @@ class Process extends Operation
         $filepond = new Filepond();
 
         $file = request()->file('filepond');
+
         $filePath = tempnam($filepond->getBasePath(), "laravel-filepond");
 
         $filePathParts = pathinfo($filePath);
+
+        $originalName = pathinfo($file->getClientOriginalName())['filename'];
+        $originalExtension = $file->getClientOriginalExtension();
+
+        $info = (object) [
+            'name' => $originalName,
+            'extension' => $originalExtension,
+            'path' => $filePath
+        ];
 
         if (!($file instanceof UploadedFile) || !$file->move($filePathParts['dirname'], $filePathParts['basename'])) {
             return Response::make('Could not save file', 500);
         }
 
-        return Response::make($filepond->getServerIdFromPath($filePath), 200);
+        return Response::make($filepond->getServerIdFromInfo($info), 200);
     }
 
 }
