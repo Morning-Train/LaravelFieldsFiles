@@ -25,7 +25,9 @@ class Filepond
      */
     public function getServerIdFromPath($path)
     {
-        return Crypt::encryptString($path);
+        $info = json_encode(['path' => $path]);
+
+        return Crypt::encryptString($info);
     }
 
     public function getServerIdFromInfo($info)
