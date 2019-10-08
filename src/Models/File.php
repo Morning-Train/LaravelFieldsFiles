@@ -3,10 +3,10 @@
 namespace MorningTrain\Laravel\Fields\Files\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Storage;
-use MorningTrain\Laravel\Fields\Files\Support\Filepond;
 use Illuminate\Http\File as FileHTTP;
-use Ramsey\Uuid\Uuid;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use MorningTrain\Laravel\Fields\Files\Support\Filepond;
 
 class File extends Model
 {
@@ -28,7 +28,7 @@ class File extends Model
 
         $this->size = $file->getSize();
         $this->mime = $file->getMimeType();
-        $this->uuid = Uuid::uuid4()->toString();
+        $this->uuid = (string) Str::uuid();
         $this->disk = 'local'; //TODO: Make disk dynamic
         $this->location = 'filepond'; // TODO: Make location dynamic
 
