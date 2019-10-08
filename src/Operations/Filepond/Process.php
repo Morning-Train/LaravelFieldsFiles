@@ -18,7 +18,11 @@ class Process extends Operation
 
         $file = request()->file('filepond');
 
-        $filePath = tempnam($filepond->getBasePath(), "laravel-filepond");
+        if (!file_exists($filepond->getBasePath())) {
+            mkdir($filepond->getBasePath());
+        }
+
+        $filePath = tempnam($filepond->getBasePath(), "laravel-filepond-");
 
         $filePathParts = pathinfo($filePath);
 
