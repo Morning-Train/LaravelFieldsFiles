@@ -3,7 +3,6 @@
     "description": "Files field for Laravel using Filepond",
     "type": "library",
     "license": "GPL-3.0-only",
-    "version": "dev",
     "authors": [
         {
             "name": "Morningtrain",
