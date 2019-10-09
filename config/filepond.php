@@ -12,4 +12,24 @@ return [
     */
     'temporary_files_path' => sys_get_temp_dir(),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Disk
+    |--------------------------------------------------------------------------
+    |
+    | Here you may specify the filesystem disk that should be used.
+    |
+    */
+    'disk' => 'local',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Location
+    |--------------------------------------------------------------------------
+    |
+    | Here you may specify the location used for storage.
+    |
+    */
+    'location' => 'filepond',
+
 ];

@@ -26,11 +26,11 @@ class File extends Model
 
         $file = new FileHTTP($path);
 
-        $this->size = $file->getSize();
-        $this->mime = $file->getMimeType();
-        $this->uuid = (string) Str::uuid();
-        $this->disk = 'local'; //TODO: Make disk dynamic
-        $this->location = 'filepond'; // TODO: Make location dynamic
+        $this->size     = $file->getSize();
+        $this->mime     = $file->getMimeType();
+        $this->uuid     = (string)Str::uuid();
+        $this->disk     = config('filepond.disk', 'local');
+        $this->location = config('filepond.location', 'filepond');
 
         if (isset($fileinfo->name)) {
             $this->name = $fileinfo->name;
@@ -51,6 +51,11 @@ class File extends Model
     public function getPathAttribute()
     {
         return $this->location . '/' . $this->internal_filename;
+    }
+
+    public function getUrlAttribute()
+    {
+        return $this->storage->url($this->path);
     }
 
     public function getInternalFilenameAttribute()
