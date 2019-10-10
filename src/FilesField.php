@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasOneThrough;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use MorningTrain\Laravel\Fields\Fields\Field;
 use MorningTrain\Laravel\Fields\Files\Models\File;
@@ -69,35 +70,57 @@ class FilesField extends Field
                 $this->clearRelated($model);
             }
 
-            foreach ($fileServerIds as $fileServerId) {
 
-                $fileServerId = $fileServerIds[0];
-
-                if ($filepond->exists($fileServerId)) {
-                    if ($this->isSingleRelation($model)) {
-
-                        $item = $model->{$this->relation}()->first();
-                        if ($item === null) {
-                            $item = new File();
-                        }
-
-                        if ($item instanceof File) {
-                            $item->loadFromServerId($fileServerId);
-                        }
-
-                        if ($item->isDirty()) {
-                            $item->save();
-                        }
-
-                        $this->attachToRelation($model, $item);
-
-                    }
-
-                }
-
+            if ($this->isSingleRelation($model)) {
+                $this->updateSingle($filepond, $model, $fileServerIds[0]);
+            }
+            else {
+                $this->updateMany($filepond, $model, collect($fileServerIds));
             }
 
+
         };
+    }
+
+    protected function updateSingle(Filepond $filepond, Model $model, string $fileServerId)
+    {
+        if ($filepond->exists($fileServerId)) {
+            $item = $model->{$this->relation}()->first();
+
+            if ($item === null) {
+                $item = new File();
+            }
+
+            if ($item instanceof File) {
+                $item->loadFromServerId($fileServerId);
+            }
+
+            if ($item->isDirty()) {
+                $item->save();
+            }
+
+            $this->attachToRelation($model, $item);
+        }
+        // TODO else where it get's deleted?
+
+    }
+
+    protected function updateMany(Filepond $filepond, Model $model, Collection $fileServerIds)
+    {
+        $ids = $fileServerIds
+            ->filter(function ($serverId) use ($filepond) {
+                return $filepond->exists($serverId);
+            })
+            ->map(function ($serverId) {
+                $item = new File();
+                $item->loadFromServerId($serverId);
+                $item->save();
+
+                return $item;
+            })
+            ->pluck('id');
+
+        $model->{$this->relation}()->sync($ids);
     }
 
 }
