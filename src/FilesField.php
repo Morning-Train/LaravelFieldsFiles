@@ -2,11 +2,14 @@
 
 namespace MorningTrain\Laravel\Fields\Files;
 
+use Closure;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasOneThrough;
+use Illuminate\Http\File as FileHTTP;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use MorningTrain\Laravel\Fields\Fields\Field;
 use MorningTrain\Laravel\Fields\Files\Models\File;
@@ -120,4 +123,31 @@ class FilesField extends Field
         $model->{$this->relation}()->sync($ids);
     }
 
+    protected function getValidator()
+    {
+        $name = $this->validatorName ?? $this->getRequestName();
+
+        return [
+            $name => function (string $attribute, $value, Closure $fails) {
+                $files    = collect((array)$value);
+                $valid    = $files->every(function ($serverId) {
+                    return Filepond::exists($serverId);
+                });
+
+                if (!$valid) {
+                    return $fails(__('validation.file', ['attribute' => $attribute]));
+                }
+
+                $files = $files->map(function ($serverId) {
+                    return new FileHTTP(
+                        Filepond::getPathFromServerId($serverId)
+                    );
+                });
+
+                Validator::make([$attribute => $files->toArray()], [
+                    "{$attribute}.*" => parent::getValidator() ?? 'file',
+                ])->validate();
+            },
+        ];
+    }
 }
