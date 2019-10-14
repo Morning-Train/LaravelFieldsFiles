@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\File as FileHTTP;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use MorningTrain\Laravel\Fields\Files\Support\Filepond;
+use MorningTrain\Laravel\Fields\Files\Filepond;
 
 class File extends Model
 {
@@ -14,9 +14,7 @@ class File extends Model
     public function loadFromServerId($serverId)
     {
 
-        $filepond = new Filepond();
-
-        $fileinfo = $filepond->getInfoFromServerId($serverId);
+        $fileinfo = Filepond::getInfoFromServerId($serverId);
 
         if (!isset($fileinfo->path)) {
             return;

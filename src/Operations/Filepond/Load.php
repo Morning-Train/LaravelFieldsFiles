@@ -3,7 +3,7 @@
 namespace MorningTrain\Laravel\Fields\Files\Operations\Filepond;
 
 use Illuminate\Support\Facades\File;
-use MorningTrain\Laravel\Fields\Files\Support\Filepond;
+use MorningTrain\Laravel\Fields\Files\Filepond;
 use MorningTrain\Laravel\Resources\Support\Contracts\Operation;
 use Illuminate\Support\Facades\Response;
 
@@ -14,9 +14,7 @@ class Load extends Operation
 
     public function handle($model = null)
     {
-        $filepond = new Filepond();
-
-        $path = storage_path('app/' . $filepond->getPathFromServerId(request()->route('filepond')));
+        $path = storage_path('app/' . Filepond::getPathFromServerId(request()->route('filepond')));
 
         $file = File::get($path);
         $type = File::mimeType($path);

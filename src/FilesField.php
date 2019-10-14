@@ -10,7 +10,6 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use MorningTrain\Laravel\Fields\Fields\Field;
 use MorningTrain\Laravel\Fields\Files\Models\File;
-use MorningTrain\Laravel\Fields\Files\Support\Filepond;
 
 class FilesField extends Field
 {
@@ -60,8 +59,6 @@ class FilesField extends Field
     {
         return $this->update ?: function (Model $model, string $property, $fileServerIds = []) {
 
-            $filepond = new Filepond();
-
             if (!is_array($fileServerIds)) {
                 $fileServerIds = [$fileServerIds];
             }
@@ -72,19 +69,19 @@ class FilesField extends Field
 
 
             if ($this->isSingleRelation($model)) {
-                $this->updateSingle($filepond, $model, $fileServerIds[0]);
+                $this->updateSingle($model, $fileServerIds[0]);
             }
             else {
-                $this->updateMany($filepond, $model, collect($fileServerIds));
+                $this->updateMany($model, collect($fileServerIds));
             }
 
 
         };
     }
 
-    protected function updateSingle(Filepond $filepond, Model $model, string $fileServerId)
+    protected function updateSingle(Model $model, string $fileServerId)
     {
-        if ($filepond->exists($fileServerId)) {
+        if (Filepond::exists($fileServerId)) {
             $item = $model->{$this->relation}()->first();
 
             if ($item === null) {
@@ -105,11 +102,11 @@ class FilesField extends Field
 
     }
 
-    protected function updateMany(Filepond $filepond, Model $model, Collection $fileServerIds)
+    protected function updateMany(Model $model, Collection $fileServerIds)
     {
         $ids = $fileServerIds
-            ->filter(function ($serverId) use ($filepond) {
-                return $filepond->exists($serverId);
+            ->filter(function ($serverId) {
+                return Filepond::exists($serverId);
             })
             ->map(function ($serverId) {
                 $item = new File();

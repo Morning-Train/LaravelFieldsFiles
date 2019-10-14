@@ -3,7 +3,7 @@
 namespace MorningTrain\Laravel\Fields\Files\Operations\Filepond;
 
 use Illuminate\Http\UploadedFile;
-use MorningTrain\Laravel\Fields\Files\Support\Filepond;
+use MorningTrain\Laravel\Fields\Files\Filepond;
 use MorningTrain\Laravel\Resources\Support\Contracts\Operation;
 use Illuminate\Support\Facades\Response;
 
@@ -14,15 +14,13 @@ class Process extends Operation
 
     public function handle($model = null)
     {
-        $filepond = new Filepond();
-
         $file = request()->file('filepond');
 
-        if (!file_exists($filepond->getBasePath())) {
-            mkdir($filepond->getBasePath());
+        if (!file_exists(Filepond::getBasePath())) {
+            mkdir(Filepond::getBasePath());
         }
 
-        $filePath = tempnam($filepond->getBasePath(), "laravel-filepond-");
+        $filePath = tempnam(Filepond::getBasePath(), "laravel-filepond-");
 
         $filePathParts = pathinfo($filePath);
 
@@ -39,7 +37,7 @@ class Process extends Operation
             return Response::make('Could not save file', 500);
         }
 
-        return Response::make($filepond->getServerIdFromInfo($info), 200);
+        return Response::make(Filepond::getServerIdFromInfo($info), 200);
     }
 
 }
