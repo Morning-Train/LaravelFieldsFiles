@@ -10,6 +10,8 @@ use MorningTrain\Laravel\Fields\Files\Filepond;
 
 class File extends Model
 {
+    protected $appends = ['serverId'];
+    protected $visible = ['serverId'];
 
     public function loadFromServerId($serverId)
     {
@@ -74,6 +76,17 @@ class File extends Model
     public function getContentAttribute()
     {
         return $this->storage->get($this->path);
+    }
+
+    public function getServerIdAttribute()
+    {
+        return Filepond::getServerIdFromInfo((object)[
+            'name'      => $this->name,
+            'extension' => $this->extension,
+            'path'      => $this->path,
+            'disk'      => $this->disk,
+            'uuid'      => $this->uuid,
+        ]);
     }
 
 }
