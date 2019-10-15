@@ -3,7 +3,6 @@
 namespace MorningTrain\Laravel\Fields\Files\Support;
 
 use Illuminate\Support\Facades\Crypt;
-use Illuminate\Support\Str;
 use MorningTrain\Laravel\Fields\Files\Models\File;
 use MorningTrain\Laravel\Fields\Files\Support\Exceptions\InvalidPathException;
 

@@ -86,19 +86,11 @@ class FilesField extends Field
     protected function updateSingle(Model $model, string $fileServerId)
     {
         if (Filepond::exists($fileServerId)) {
-            $item = $model->{$this->relation}()->first();
+            /** @var File $item */
+            $item = $model->{$this->relation}()->first() ?? new File();
 
-            if ($item === null) {
-                $item = new File();
-            }
-
-            if ($item instanceof File) {
-                $item->loadFromServerId($fileServerId);
-            }
-
-            if ($item->isDirty()) {
-                $item->save();
-            }
+            $item->loadFromServerId($fileServerId);
+            $item->save();
 
             $this->attachToRelation($model, $item);
         }
