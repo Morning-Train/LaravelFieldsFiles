@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 use Illuminate\Http\File as FileHTTP;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -151,9 +152,15 @@ class FilesField extends Field
                     );
                 });
 
-                Validator::make([$attribute => $files->toArray()], [
+                $validator = Validator::make([$attribute => $files->toArray()], [
                     "{$attribute}.*" => parent::getValidator() ?? 'file',
-                ])->validate();
+                ]);
+
+                if ($validator->fails()) {
+                    return $fails(
+                        Arr::collapse($validator->errors()->messages())
+                    );
+                }
             },
         ];
     }
