@@ -91,9 +91,12 @@ class FilesField extends Field
                 $model->{$this->relation}()->first()
             )->delete();
         }
-        else if ($fileServerId !== null && Filepond::exists($fileServerId)) {
+
+        if (Filepond::exists($fileServerId)) {
             /** @var File $item */
             $item = $model->{$this->relation}()->first() ?? new File();
+
+            if ($item->isSameAs($fileServerId)) return;
 
             $item->loadFromServerId($fileServerId);
             $item->save();
