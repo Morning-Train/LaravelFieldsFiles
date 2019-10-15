@@ -98,12 +98,22 @@ class FilesField extends Field
 
     protected function updateMany(Model $model, Collection $fileServerIds)
     {
+        $existing = $model->{$this->relation}()->get();
+
         $ids = $fileServerIds
             ->filter(function ($serverId) {
                 return Filepond::exists($serverId);
             })
-            ->map(function ($serverId) {
+            ->map(function ($serverId) use ($existing) {
                 $item = new File();
+
+                if (Filepond::existsPermanently($serverId)) {
+                    $uuid = Filepond::getInfoFromServerId($serverId)->uuid;
+                    $item = $existing->firstWhere('uuid', $uuid) ?? $item;
+                }
+
+                if ($item->exists && $item->isSameAs($serverId)) return $item;
+
                 $item->loadFromServerId($serverId);
                 $item->save();
 
@@ -111,7 +121,9 @@ class FilesField extends Field
             })
             ->pluck('id');
 
-        $model->{$this->relation}()->sync($ids);
+        $res = $model->{$this->relation}()->sync($ids);
+
+        File::whereIn('id', $res['detached'])->get()->each->delete();
     }
 
     //////////////////////////
