@@ -2,6 +2,7 @@
 
 namespace MorningTrain\Laravel\Fields\Files\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\File as FileHTTP;
 use Illuminate\Support\Facades\Storage;
@@ -13,6 +14,24 @@ class File extends Model
     protected $appends = ['serverId'];
     protected $visible = ['serverId'];
 
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleted(function (File $file) {
+            $file->deleteFile();
+        });
+    }
+
+    //////////////////////////
+    /// Methods
+    //////////////////////////
+
+    protected function deleteFile()
+    {
+        return $this->storage->delete($this->path);
+    }
+
     public function loadFromServerId($serverId)
     {
 
@@ -20,6 +39,10 @@ class File extends Model
 
         if (!isset($fileinfo->path)) {
             return;
+        }
+
+        if ($this->fileExists) {
+            $this->deleteFile();
         }
 
         $path = $fileinfo->path;
@@ -47,6 +70,30 @@ class File extends Model
         }
 
     }
+
+    public function isSameAs($serverId)
+    {
+        $info = Filepond::getInfoFromServerId($serverId);
+
+        if (isset($info->uuid)) {
+            return $info->uuid === $this->uuid;
+        }
+
+        return false;
+    }
+
+    //////////////////////////
+    /// Scopes
+    //////////////////////////
+
+    public function scopeUuid(Builder $q, string $uuid)
+    {
+        return $q->where('uuid', $uuid);
+    }
+
+    //////////////////////////
+    /// Accessors
+    //////////////////////////
 
     public function getPathAttribute()
     {
@@ -76,6 +123,11 @@ class File extends Model
     public function getContentAttribute()
     {
         return $this->storage->get($this->path);
+    }
+
+    public function getFileExistsAttribute()
+    {
+        return $this->storage->exists($this->path);
     }
 
     public function getServerIdAttribute()

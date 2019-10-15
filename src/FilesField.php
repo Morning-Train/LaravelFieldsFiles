@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 use Illuminate\Http\File as FileHTTP;
+use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -41,11 +43,6 @@ class FilesField extends Field
         return $relation instanceof BelongsTo || $relation instanceof HasOne || $relation instanceof HasOneThrough;
     }
 
-    public function clearRelated($model)
-    {
-        $this->getRelation($model)->delete();
-    }
-
     public function attachToRelation(Model $model, Model $item)
     {
         $relation = $this->getRelation($model);
@@ -66,11 +63,6 @@ class FilesField extends Field
                 $fileServerIds = [$fileServerIds];
             }
 
-            if (empty($fileServerIds)) {
-                $this->clearRelated($model);
-            }
-
-
             if ($this->isSingleRelation($model)) {
                 $this->updateSingle($model, $fileServerIds[0]);
             }
@@ -82,37 +74,46 @@ class FilesField extends Field
         };
     }
 
-    protected function updateSingle(Model $model, string $fileServerId)
+    protected function updateSingle(Model $model, string $fileServerId = null)
     {
+        if ($fileServerId === null) {
+            return optional(
+                $model->{$this->relation}()->first()
+            )->delete();
+        }
+
         if (Filepond::exists($fileServerId)) {
-            $item = $model->{$this->relation}()->first();
+            /** @var File $item */
+            $item = $model->{$this->relation}()->first() ?? new File();
 
-            if ($item === null) {
-                $item = new File();
-            }
+            if ($item->isSameAs($fileServerId)) return;
 
-            if ($item instanceof File) {
-                $item->loadFromServerId($fileServerId);
-            }
-
-            if ($item->isDirty()) {
-                $item->save();
-            }
+            $item->loadFromServerId($fileServerId);
+            $item->save();
 
             $this->attachToRelation($model, $item);
         }
-        // TODO else where it get's deleted?
 
     }
 
     protected function updateMany(Model $model, Collection $fileServerIds)
     {
+        $existing = $model->{$this->relation}()->get();
+
         $ids = $fileServerIds
             ->filter(function ($serverId) {
                 return Filepond::exists($serverId);
             })
-            ->map(function ($serverId) {
+            ->map(function ($serverId) use ($existing) {
                 $item = new File();
+
+                if (Filepond::existsPermanently($serverId)) {
+                    $uuid = Filepond::getInfoFromServerId($serverId)->uuid;
+                    $item = $existing->firstWhere('uuid', $uuid) ?? $item;
+                }
+
+                if ($item->exists && $item->isSameAs($serverId)) return $item;
+
                 $item->loadFromServerId($serverId);
                 $item->save();
 
@@ -120,7 +121,18 @@ class FilesField extends Field
             })
             ->pluck('id');
 
-        $model->{$this->relation}()->sync($ids);
+        $res = $model->{$this->relation}()->sync($ids);
+
+        File::whereIn('id', $res['detached'])->get()->each->delete();
+    }
+
+    //////////////////////////
+    /// Overrides
+    //////////////////////////
+
+    protected function checkRequest(Request $request)
+    {
+        return true;
     }
 
     protected function getValidator()
@@ -135,19 +147,37 @@ class FilesField extends Field
                 });
 
                 if (!$valid) {
-                    return $fails(__('validation.file', ['attribute' => $attribute]));
+                    $key  = "validation.attributes.{$attribute}";
+                    $name = __("validation.attributes.{$attribute}");
+                    $name = $name === $key ? $attribute : $name;
+
+                    return $fails(__(
+                        'validation.file',
+                        ['attribute' => $name]
+                    ));
                 }
 
-                $files = $files->map(function ($serverId) {
-                    return new FileHTTP(
-                        Filepond::getPathFromServerId($serverId)
-                    );
-                });
+                $files = $files
+                    ->filter(function ($serverId) {
+                        return !Filepond::existsPermanently($serverId);
+                    })
+                    ->map(function ($serverId) {
+                        return new FileHTTP(
+                            Filepond::getPathFromServerId($serverId)
+                        );
+                    });
 
-                Validator::make([$attribute => $files->toArray()], [
+                $validator = Validator::make([$attribute => $files->toArray()], [
                     "{$attribute}.*" => parent::getValidator() ?? 'file',
-                ])->validate();
+                ]);
+
+                if ($validator->fails()) {
+                    return $fails(
+                        Arr::collapse($validator->errors()->messages())
+                    );
+                }
             },
         ];
     }
 }
+
