@@ -19,8 +19,17 @@ class File extends Model
         parent::boot();
 
         static::deleted(function (File $file) {
-            $file->storage->delete($file->path);
+            $file->deleteFile();
         });
+    }
+
+    //////////////////////////
+    /// Methods
+    //////////////////////////
+
+    protected function deleteFile()
+    {
+        return $this->storage->delete($this->path);
     }
 
     public function loadFromServerId($serverId)
@@ -56,6 +65,17 @@ class File extends Model
             unlink($path);
         }
 
+    }
+
+    public function isSameAs($serverId)
+    {
+        $info = Filepond::getInfoFromServerId($serverId);
+
+        if (isset($info->uuid)) {
+            return $info->uuid === $this->uuid;
+        }
+
+        return false;
     }
 
     //////////////////////////
