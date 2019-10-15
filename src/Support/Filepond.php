@@ -83,7 +83,12 @@ class Filepond
 
     public function existsPermanently($serverId)
     {
-        $info = Filepond::getInfoFromServerId($serverId);
+        try {
+            $info = Filepond::getInfoFromServerId($serverId);
+
+        } catch (\Exception $exception) {
+            return false;
+        }
 
         if (!isset($info->uuid)) return false;
 
