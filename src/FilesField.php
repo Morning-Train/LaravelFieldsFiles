@@ -135,7 +135,14 @@ class FilesField extends Field
                 });
 
                 if (!$valid) {
-                    return $fails(__('validation.file', ['attribute' => $attribute]));
+                    $key  = "validation.attributes.{$attribute}";
+                    $name = __("validation.attributes.{$attribute}");
+                    $name = $name === $key ? $attribute : $name;
+
+                    return $fails(__(
+                        'validation.file',
+                        ['attribute' => $name]
+                    ));
                 }
 
                 $files = $files->map(function ($serverId) {
@@ -151,3 +158,4 @@ class FilesField extends Field
         ];
     }
 }
+
