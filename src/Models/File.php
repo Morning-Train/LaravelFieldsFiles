@@ -14,6 +14,15 @@ class File extends Model
     protected $appends = ['serverId'];
     protected $visible = ['serverId'];
 
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleted(function (File $file) {
+            $file->storage->delete($file->path);
+        });
+    }
+
     public function loadFromServerId($serverId)
     {
 
