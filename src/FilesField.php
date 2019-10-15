@@ -146,11 +146,15 @@ class FilesField extends Field
                     ));
                 }
 
-                $files = $files->map(function ($serverId) {
-                    return new FileHTTP(
-                        Filepond::getPathFromServerId($serverId)
-                    );
-                });
+                $files = $files
+                    ->filter(function ($serverId) {
+                        return !Filepond::existsPermanently($serverId);
+                    })
+                    ->map(function ($serverId) {
+                        return new FileHTTP(
+                            Filepond::getPathFromServerId($serverId)
+                        );
+                    });
 
                 $validator = Validator::make([$attribute => $files->toArray()], [
                     "{$attribute}.*" => parent::getValidator() ?? 'file',
