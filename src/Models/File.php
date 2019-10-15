@@ -41,6 +41,10 @@ class File extends Model
             return;
         }
 
+        if ($this->fileExists) {
+            $this->deleteFile();
+        }
+
         $path = $fileinfo->path;
 
         $file = new FileHTTP($path);
