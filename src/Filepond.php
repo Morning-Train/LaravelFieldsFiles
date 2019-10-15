@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Facade;
  * @method static string getBasePath()
  * @method static string getServerIdFromInfo($info)
  * @method static boolean exists($serverId)
+ * @method static boolean existsPermanently($serverId)
+ * @method static boolean existsTemporarily($serverId)
  *
  * @see \MorningTrain\Laravel\Fields\Files\Support\Filepond
  */

@@ -4,6 +4,7 @@ namespace MorningTrain\Laravel\Fields\Files\Support;
 
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Str;
+use MorningTrain\Laravel\Fields\Files\Models\File;
 use MorningTrain\Laravel\Fields\Files\Support\Exceptions\InvalidPathException;
 
 class Filepond
@@ -77,6 +78,22 @@ class Filepond
     }
 
     public function exists($serverId)
+    {
+        return $this->existsTemporarily($serverId) || $this->existsPermanently($serverId);
+    }
+
+    public function existsPermanently($serverId)
+    {
+        $info = Filepond::getInfoFromServerId($serverId);
+
+        if (!isset($info->uuid)) return false;
+
+        return optional(
+            File::query()->uuid($info->uuid)->first()
+        )->fileExists ?? false;
+    }
+
+    public function existsTemporarily($serverId)
     {
         try {
             $path = $this->getPathFromServerId($serverId);
