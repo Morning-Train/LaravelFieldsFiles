@@ -2,6 +2,7 @@
 
 namespace MorningTrain\Laravel\Fields\Files\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\File as FileHTTP;
 use Illuminate\Support\Facades\Storage;
@@ -48,6 +49,19 @@ class File extends Model
 
     }
 
+    //////////////////////////
+    /// Scopes
+    //////////////////////////
+
+    public function scopeUuid(Builder $q, string $uuid)
+    {
+        return $q->where('uuid', $uuid);
+    }
+
+    //////////////////////////
+    /// Accessors
+    //////////////////////////
+
     public function getPathAttribute()
     {
         return $this->location . '/' . $this->internal_filename;
@@ -76,6 +90,11 @@ class File extends Model
     public function getContentAttribute()
     {
         return $this->storage->get($this->path);
+    }
+
+    public function getFileExistsAttribute()
+    {
+        return $this->storage->exists($this->path);
     }
 
     public function getServerIdAttribute()
