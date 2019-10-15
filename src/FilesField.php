@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 use Illuminate\Http\File as FileHTTP;
+use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Validator;
@@ -19,12 +20,14 @@ class FilesField extends Field
 {
 
     protected $relation;
+    protected $strict;
 
-    public function __construct(string $name = null)
+    public function __construct(string $name = null, bool $strict = true)
     {
         parent::__construct($name);
 
         $this->relation = Str::camel($name);
+        $this->strict   = $strict;
 
         $this->updatesAt(Field::BEFORE_SAVE);
 
@@ -83,9 +86,14 @@ class FilesField extends Field
         };
     }
 
-    protected function updateSingle(Model $model, string $fileServerId)
+    protected function updateSingle(Model $model, string $fileServerId = null)
     {
-        if (Filepond::exists($fileServerId)) {
+        if ($fileServerId === null && $this->strict) {
+            return optional(
+                $model->{$this->relation}()->first()
+            )->delete();
+        }
+        else if ($fileServerId !== null && Filepond::exists($fileServerId)) {
             /** @var File $item */
             $item = $model->{$this->relation}()->first() ?? new File();
 
@@ -94,7 +102,6 @@ class FilesField extends Field
 
             $this->attachToRelation($model, $item);
         }
-        // TODO else where it get's deleted?
 
     }
 
@@ -114,6 +121,11 @@ class FilesField extends Field
             ->pluck('id');
 
         $model->{$this->relation}()->sync($ids);
+    }
+
+    protected function checkRequest(Request $request)
+    {
+        return $this->strict ? true : parent::checkRequest($request);
     }
 
     protected function getValidator()
