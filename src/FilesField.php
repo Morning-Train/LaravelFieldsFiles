@@ -20,14 +20,12 @@ class FilesField extends Field
 {
 
     protected $relation;
-    protected $strict;
 
-    public function __construct(string $name = null, bool $strict = true)
+    public function __construct(string $name = null)
     {
         parent::__construct($name);
 
         $this->relation = Str::camel($name);
-        $this->strict   = $strict;
 
         $this->updatesAt(Field::BEFORE_SAVE);
 
@@ -88,7 +86,7 @@ class FilesField extends Field
 
     protected function updateSingle(Model $model, string $fileServerId = null)
     {
-        if ($fileServerId === null && $this->strict) {
+        if ($fileServerId === null) {
             return optional(
                 $model->{$this->relation}()->first()
             )->delete();
@@ -123,9 +121,13 @@ class FilesField extends Field
         $model->{$this->relation}()->sync($ids);
     }
 
+    //////////////////////////
+    /// Overrides
+    //////////////////////////
+
     protected function checkRequest(Request $request)
     {
-        return $this->strict ? true : parent::checkRequest($request);
+        return true;
     }
 
     protected function getValidator()
