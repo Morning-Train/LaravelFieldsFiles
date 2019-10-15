@@ -43,11 +43,6 @@ class FilesField extends Field
         return $relation instanceof BelongsTo || $relation instanceof HasOne || $relation instanceof HasOneThrough;
     }
 
-    public function clearRelated($model)
-    {
-        $this->getRelation($model)->delete();
-    }
-
     public function attachToRelation(Model $model, Model $item)
     {
         $relation = $this->getRelation($model);
@@ -67,11 +62,6 @@ class FilesField extends Field
             if (!is_array($fileServerIds)) {
                 $fileServerIds = [$fileServerIds];
             }
-
-            if (empty($fileServerIds)) {
-                $this->clearRelated($model);
-            }
-
 
             if ($this->isSingleRelation($model)) {
                 $this->updateSingle($model, $fileServerIds[0]);
