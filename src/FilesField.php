@@ -31,6 +31,14 @@ class FilesField extends Field
 
     }
 
+    protected $manipulator = null;
+
+    public function manipulates(Closure $manipulator)
+    {
+        $this->manipulator = $manipulator;
+        return $this;
+    }
+
     public function getRelation($model)
     {
         return $model->{$this->relation}();
@@ -88,7 +96,7 @@ class FilesField extends Field
 
             if ($item->isSameAs($fileServerId)) return;
 
-            $item->loadFromServerId($fileServerId);
+            $item->loadFromServerId($fileServerId, $this->manipulator);
             $item->save();
 
             $this->attachToRelation($model, $item);
@@ -114,7 +122,7 @@ class FilesField extends Field
 
                 if ($item->exists && $item->isSameAs($serverId)) return $item;
 
-                $item->loadFromServerId($serverId);
+                $item->loadFromServerId($serverId, $this->manipulator);
                 $item->save();
 
                 return $item;

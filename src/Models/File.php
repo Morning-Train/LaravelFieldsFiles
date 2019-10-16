@@ -2,6 +2,7 @@
 
 namespace MorningTrain\Laravel\Fields\Files\Models;
 
+use Closure;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\File as FileHTTP;
@@ -32,7 +33,7 @@ class File extends Model
         return $this->storage->delete($this->path);
     }
 
-    public function loadFromServerId($serverId)
+    public function loadFromServerId($serverId, Closure $manipulator = null)
     {
 
         $fileinfo = Filepond::getInfoFromServerId($serverId);
@@ -46,6 +47,9 @@ class File extends Model
         }
 
         $path = $fileinfo->path;
+
+        // Invoke manipulator
+        with($path, $manipulator);
 
         $file = new FileHTTP($path);
 
