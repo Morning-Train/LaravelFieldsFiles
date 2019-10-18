@@ -12,8 +12,8 @@ use MorningTrain\Laravel\Fields\Files\Filepond;
 
 class File extends Model
 {
-    protected $appends = ['serverId', 'url'];
-    protected $visible = ['serverId', 'url', 'name', 'size', 'mime'];
+    protected $appends = ['serverId', 'url', 'filename'];
+    protected $visible = ['serverId', 'url', 'name', 'size', 'mime', 'extension', 'description', 'filename'];
 
     protected static function boot()
     {
