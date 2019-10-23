@@ -27,8 +27,11 @@ class FilesField extends Field
 
         $this->relation = Str::camel($name);
 
-        $this->updatesAt(Field::BEFORE_SAVE);
-
+        $this->updatesAt(function (Model $model) {
+            return $this->getRelation($model) instanceof BelongsTo ?
+                Field::BEFORE_SAVE :
+                Field::AFTER_SAVE;
+        });
     }
 
     protected $manipulator = null;
