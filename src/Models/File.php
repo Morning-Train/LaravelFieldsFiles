@@ -6,6 +6,7 @@ use Closure;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\File as FileHTTP;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use MorningTrain\Laravel\Fields\Files\Filepond;
@@ -31,6 +32,33 @@ class File extends Model
     protected function deleteFile()
     {
         return $this->storage->delete($this->path);
+    }
+
+    public static function createFromStorage(string $disk, string $path)
+    {
+        $storage = Storage::disk($disk);
+
+        if (!$storage->exists($path)) {
+            return false;
+        }
+
+        $model = new static();
+
+        $parts     = explode('.', Arr::last(explode('/', $path)));
+        $extension = array_pop($parts);
+
+        $model->name      = join('.', $parts);
+        $model->extension = $extension;
+        $model->size      = $storage->size($path);
+        $model->mime      = $storage->mimeType($path);
+        $model->uuid      = (string)Str::uuid();
+        $model->disk      = config('filepond.disk', 'local');
+        $model->location  = config('filepond.location', 'filepond');
+
+		$model->storage->put($model->path, $storage->get($path));
+        $model->save();
+
+		return $model;
     }
 
     public function loadFromServerId($serverId, Closure $manipulator = null)
@@ -146,3 +174,4 @@ class File extends Model
     }
 
 }
+
